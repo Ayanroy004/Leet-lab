@@ -54,3 +54,36 @@ export const authMiddleware = async (req, res, next) => {
     });
   }
 };
+
+export const isAdmin = async (req, res, next)=>{
+  try {
+    
+    const userId = req.user.id;
+
+    const user = await db.user.findUnique({
+      where:{
+        id: userId
+      },
+      select:{
+        role:true
+      }
+    })
+
+    if(!user || user.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden, admin access required",
+      });
+    }
+
+    next();
+
+  } catch (error) {
+    console.log("Error in isAdmin middleware:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+}
