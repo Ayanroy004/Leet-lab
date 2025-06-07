@@ -26,38 +26,97 @@ enum Difficulty {
 }
 
 model User {
-  id String @id @default(uuid())
-  name String?
-  email String @unique
-  image String?
-  role UserRole @default(USER)
-  password String
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  image     String?
+  role      UserRole @default(USER)
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  problems Problem[]
+  problems       Problem[]
+  submissions    Submission[]
+  solvedProblems ProblemSolved[]
 }
 
 model Problem {
-  id String @id @default(uuid())
-  title String
+  id          String     @id @default(uuid())
+  title       String
   description String
-  difficulty Difficulty @default(EASY)
-  tags String[] 
-  userId String
-  examples Json
+  difficulty  Difficulty @default(EASY)
+  tags        String[]
+  userId      String
+  examples    Json
   constraints String
-  hints String?
-  editorial String?
+  hints       String?
+  editorial   String?
 
-  testcases Json // [{ input: string, output: string }]
-  codeSnippets Json // [{ language: string, code: string }]
+  testcases          Json // [{ input: string, output: string }]
+  codeSnippets       Json // [{ language: string, code: string }]
   referenceSolutions Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   //relationships
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+  solvedBy    ProblemSolved[]
+}
 
+model Submission {
+  id            String   @id @default(uuid())
+  problemId     String
+  userId        String
+  sourceCode    Json
+  language      String
+  stdin         String?
+  stdout        String?
+  stderr        String?
+  compileOutput String?
+  status        String // e.g., "PENDING", "ACCEPTED", "REJECTED"
+  memory        String?
+  time          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  //relationships
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  testCases TestCaseResult[]
+}
+
+model TestCaseResult {
+  id             String  @id @default(uuid())
+  submissionId   String
+  testCaseId     Int
+  passed         Boolean
+  stdout         String?
+  expectedOutput String
+  stderr         String?
+  compileOutput  String?
+  status         String // e.g., "PASSED", "FAILED"
+  time           String?
+  memory         String?
+
+  //relationships
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model ProblemSolved {
+  id        String   @id @default(uuid())
+  userId    String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relationships
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
 }
