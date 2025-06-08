@@ -10,6 +10,16 @@ export const getJudge0LanguageId = (language) => {
   return languageMap[language.toUpperCase()] || null;
 };
 
+export const getLanguageName = (languageId) => {
+  const languageMap = {
+    PYTHON: 71,
+    JAVA: 62,
+    JAVASCRIPT: 63,
+  };
+
+  return Object.keys(languageMap).find((key)=> languageMap[key] === languageId) || null;
+}
+
 export const submitBatch = async (submissions) => {
   try {
     console.log(submissions);
@@ -17,7 +27,7 @@ export const submitBatch = async (submissions) => {
     const { data } = await axios.post(
       `${process.env.JUDGE0_API_URL}/submissions/batch?base64_encoded=false`,{submissions});
     console.log("i am here");
-    console.log("Batch submission response:", data);
+    // console.log("Batch submission response:", data);
   
     return data; // Return the results of the batch submission
   } catch (error) {
@@ -41,7 +51,7 @@ export const pollBatchResults = async (tokens) => {
 
     const results = data.submissions;
 
-    console.log("Batch result running pooling=====:", results);
+    // console.log("Batch result running pooling=====:", results);
 
     const isAllDone = results.every(
       (result) => result.status.id !== 1 && result.status.id !== 2
