@@ -38,6 +38,7 @@ model User {
   problems       Problem[]
   submissions    Submission[]
   solvedProblems ProblemSolved[]
+  playlists      Playlist[]
 }
 
 model Problem {
@@ -63,6 +64,7 @@ model Problem {
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   submissions Submission[]
   solvedBy    ProblemSolved[]
+  playlists   ProblemInPlaylist[]
 }
 
 model Submission {
@@ -119,4 +121,34 @@ model ProblemSolved {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([ userId, problemId ])
+}
+
+model Playlist {
+  id        String   @id @default(uuid())
+  name      String
+  description String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relationships
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problems ProblemInPlaylist[]
+
+  @@unique([ userId, name ])  // Ensure unique playlist names per user
+}
+
+
+model ProblemInPlaylist{
+  id          String   @id @default(uuid())
+  playlistId  String
+  problemId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //relationships
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  problem  Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([ playlistId, problemId ]) // Ensure a problem can only be added once to a playlist
 }
