@@ -99,7 +99,15 @@ export const createProblem = async (req, res) => {
 
 export const getAllProblem = async (req, res) => {
   try {
-    const problems = await db.problem.findMany({});
+    const problems = await db.problem.findMany({
+      include: {
+        solvedBy: {
+          where: {
+            userId: req.user.id,
+          },
+        },
+      },
+    });
 
     if (!problems) {
       return res.status(404).json({
@@ -124,7 +132,7 @@ export const getAllProblem = async (req, res) => {
 
 export const getProblemById = async (req, res) => {
   const { id } = req.params;
-
+  console.log("Problem ID:", id);
   try {
     const problem = await db.problem.findUnique({
       where: {
@@ -138,7 +146,7 @@ export const getProblemById = async (req, res) => {
         error: "Problem not found",
       });
     }
-
+    console.log("Problem by ID", problem);
     res.status(200).json({
       success: true,
       message: "Problem fetched successfully",
@@ -179,7 +187,7 @@ export const updateProblem = async (req, res) => {
       id,
     },
   });
-console.log(existProblem, "Exist Problem");
+  console.log(existProblem, "Exist Problem");
 
   if (!existProblem) {
     return res.status(404).json({
@@ -190,9 +198,10 @@ console.log(existProblem, "Exist Problem");
 
   try {
     // Validate the reference solutions and test cases by submitting them to Judge0====================================
-    
-    
-    for(const [languages, solutionCode] of Object.entries(referenceSolutions)) {
+
+    for (const [languages, solutionCode] of Object.entries(
+      referenceSolutions
+    )) {
       const languageId = getJudge0LanguageId(languages);
       if (languageId === null) {
         return res.status(400).json({
@@ -202,7 +211,7 @@ console.log(existProblem, "Exist Problem");
       }
 
       console.log(languageId, "Language ID for the solution code");
-      
+
       const submissions = testcases.map(({ input, output }) => ({
         source_code: solutionCode,
         language_id: languageId,
@@ -243,7 +252,6 @@ console.log(existProblem, "Exist Problem");
           codeSnippets,
           referenceSolutions,
         },
-
       });
 
       return res.status(200).json({
@@ -272,14 +280,13 @@ export const deleteProblem = async (req, res) => {
   }
 
   try {
-    
     const problem = await db.problem.findUnique({
-      where:{
-        id
-      }
-    })
+      where: {
+        id,
+      },
+    });
 
-    if(!problem) {
+    if (!problem) {
       return res.status(404).json({
         success: false,
         error: "Problem not found",
@@ -287,15 +294,14 @@ export const deleteProblem = async (req, res) => {
     }
 
     await db.problem.delete({
-      where:{
-        id
-      }
-    })
+      where: {
+        id,
+      },
+    });
     return res.status(200).json({
       success: true,
       message: "Problem deleted successfully",
     });
-
   } catch (error) {
     console.error("Error deleting problem:", error);
     return res.status(500).json({
@@ -310,21 +316,21 @@ export const getSolvedProblem = async (req, res) => {
   try {
     const userId = req.user.id;
     const problems = await db.problem.findMany({
-      where:{
-        solvedBy:{
-          some:{
-            userId: userId
-          }
-        }
+      where: {
+        solvedBy: {
+          some: {
+            userId: userId,
+          },
+        },
       },
       include: {
         solvedBy: {
           where: {
-            userId: userId
-          }
-        }
-      }
-    })
+            userId: userId,
+          },
+        },
+      },
+    });
     console.log(problems, "Solved Problems");
 
     if (!problems || problems.length === 0) {

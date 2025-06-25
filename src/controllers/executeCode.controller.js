@@ -13,7 +13,7 @@ export const executeCode = async (req, res) => {
     const userId = req.user.id;
 
     // Validate input
-
+    console.log("Executing code done", )
     if (
       !Array.isArray(stdin) ||
       stdin.length === 0 ||
